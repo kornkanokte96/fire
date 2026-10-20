@@ -1,0 +1,117 @@
+/* V3 workspace only: the shared styles and published V2 stay unchanged. */
+.workspace-ready .guided-progress{margin-bottom:0;border-radius:10px 10px 0 0;box-shadow:none;border-bottom:0}
+.workspace-ready .guide-progress-top{margin-bottom:6px}
+.workspace-ready .guide-progress-bottom{display:block}
+.workspace-ready .guide-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.workspace-ready .guide-steps button{justify-content:center;white-space:normal;min-width:0}
+.workspace-ready .op-head{padding:15px 18px}
+.workspace-ready .op-head .muted{max-width:850px}
+.workspace-ready .op-layout{grid-template-columns:minmax(0,1fr) 370px;height:640px;height:clamp(560px,calc(100dvh - 125px),860px);min-height:0;overflow:clip}
+.workspace-ready .op-map-card{display:flex;flex-direction:column;min-height:0;min-width:0;background:#edf3ef;align-self:stretch;height:100%}
+.workspace-map-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:9px 12px;background:#f9fcfa;border-bottom:1px solid var(--line);position:relative;z-index:10}
+.workspace-map-head>b{font-size:13px;padding-top:5px;white-space:nowrap}
+.workspace-map-head>.workspace-details{margin:0;text-align:right}
+.workspace-map-head>.workspace-details>summary{padding:5px 0;font-size:12px}
+.workspace-map-head>.workspace-details[open]{position:absolute;right:8px;top:8px;width:min(520px,calc(100% - 16px));max-height:75dvh;overflow:auto;border:1px solid var(--line);border-radius:8px;background:#fff;box-shadow:0 8px 25px #173d2b26;padding:8px 12px;text-align:left}
+.workspace-map-head .point-filterbar,.workspace-map-head .op-toolbar{padding:10px 0;border-top:1px solid var(--line);border-bottom:0;background:transparent;gap:8px}
+.workspace-map-head .op-mode-buttons{margin:8px 0}
+.workspace-map-head .op-exaggeration{margin-left:0}
+.workspace-map-status .op-status{margin:0;padding:6px 12px;font-size:11px;line-height:1.5}
+.workspace-map-viewport{position:relative;flex:1;min-height:0;overflow:hidden}
+.workspace-ready #operational-3d-map{height:100%;min-height:0;width:100%}
+.workspace-map-viewport .op-map-key{font-size:9px;gap:5px 10px;padding:7px;left:8px;bottom:8px;max-width:calc(100% - 16px)}
+.workspace-ready .sim-map-legend{top:8px;left:8px;font-size:10px;max-width:calc(100% - 66px)}
+.workspace-ready .sim-toast{left:8px;top:100px;max-height:calc(100% - 130px);overflow:auto}
+.workspace-playback{background:#f2f7f3;border-top:1px solid var(--line);padding:8px 12px;flex:none}
+.workspace-playback .sim-time{padding:0;margin:0}
+.workspace-playback .sim-time label{font-size:12px;margin:0}
+.workspace-playback .sim-time input{margin:5px 0;width:100%}
+.workspace-playback .sim-ticks{font-size:10px}
+.workspace-playback-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}
+.workspace-playback-actions button{font-size:12px;min-height:32px;padding:3px 10px}
+.workspace-playback-actions label{display:flex;align-items:center;gap:6px;font-size:11px;margin-left:auto;color:var(--muted)}
+.workspace-playback-actions select{font-size:12px;min-height:32px;padding:3px 6px}
+.workspace-ready .op-command{display:flex;flex-direction:column;gap:0;padding:0;min-height:0;max-height:none;overflow:hidden;background:#fff}
+.workspace-command-head{padding:16px 18px 12px;border-bottom:1px solid var(--line);flex:none}
+.workspace-step-number{font-size:12px;color:#62766a}
+.workspace-ready .workspace-command-head h3{margin:3px 0 0;font-size:20px;line-height:1.45}
+.workspace-command-body{flex:1;min-height:0;overflow:auto;padding:16px 18px;overscroll-behavior:contain;scrollbar-gutter:stable}
+.workspace-step{min-width:0}
+.workspace-command-footer{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;flex:none;padding:12px 18px;border-top:1px solid var(--line);background:#fff}
+.workspace-command-footer button{min-height:44px;font-size:13px;padding:7px 11px}
+.workspace-ready #guide-back{padding:7px 12px}
+.workspace-ready .guide-card{border:0;padding:0;background:transparent;margin:0 0 12px;box-shadow:none;outline:none}
+.workspace-ready .guide-card>.guide-kicker,.workspace-ready .guide-card>h3,.workspace-ready .guide-card>p:not(.guide-live),.workspace-ready #guide-use-h01,.workspace-ready #guide-card-1>small,.workspace-ready #guide-go-route{display:none}
+.workspace-ready .guide-card .guide-live{margin:0;background:#eef5f0;color:#365346;padding:10px;font-size:12px}
+.workspace-ready .guided-highlight{outline:none;box-shadow:none}
+.workspace-ready .guide-target-zone{gap:12px}
+.workspace-ready .guide-target-zone>label{font-size:13px}
+.workspace-ready .op-inline-actions{margin:0}
+.workspace-ready .op-inline-actions button{min-height:40px;font-size:12px}
+.workspace-ready .op-coordinate-form{margin:8px 0 0}
+.workspace-ready .op-coordinate-form fieldset{padding:0;border:0}
+.workspace-ready .op-coordinate-form legend{display:none}
+.workspace-details{font-size:12px;margin:12px 0;color:#526c5c;min-width:0}
+.workspace-details>summary{cursor:pointer;padding:7px 0;min-height:34px}
+.workspace-details>button{margin:5px 5px 6px 0;min-height:38px;font-size:12px}
+.workspace-details .sim-layer-option{display:flex;align-items:center;gap:7px;padding:6px 0}
+.workspace-ready .sim-controls,.workspace-ready .sim-results{padding:0;border:0;background:transparent}
+.workspace-ready .sim-heading{display:block;margin:0}
+.workspace-ready .sim-heading h3,.workspace-ready .sim-heading .sim-kicker,.workspace-ready .sim-demo-badge,.workspace-ready .sim-heading p,.workspace-ready .sim-scope{display:none}
+.workspace-ready .sim-actions{display:none}
+.workspace-ready #sim-run,.workspace-ready #op-route{display:none}
+.workspace-ready #guide-simulation-current{display:none}
+.workspace-ready .sim-status{font-size:12px;line-height:1.65;padding:9px 10px;margin:10px 0;background:#edf4ee;border-radius:6px}
+.workspace-ready .sim-metrics{grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.workspace-ready .sim-metrics>div{padding:9px;background:#f4f7f4;border-radius:6px;min-width:0}
+.workspace-ready .sim-metrics strong{font-size:14px;overflow-wrap:anywhere}
+.workspace-ready .sim-metrics span{font-size:11px}
+.workspace-ready .guide-detection-grid{grid-template-columns:1fr;margin:12px 0}
+.workspace-ready .guide-detection-item{padding:10px;border:1px solid var(--line);background:#f8fbf8}
+.workspace-ready .guide-detection-item>strong{font-size:14px}
+.workspace-ready .guide-detection-item p{font-size:12px;line-height:1.65}
+.workspace-ready .sim-results-head{display:block}
+.workspace-ready .sim-results-head h3{font-size:15px}
+.workspace-ready .sim-events{grid-template-columns:1fr;max-height:none;overflow:visible}
+.workspace-ready .sim-method{padding:9px}
+.workspace-ready .sim-station-scroll{max-width:100%}
+.workspace-ready .guide-empty{padding:0;background:transparent;border:0}
+.workspace-ready .guide-empty>.guide-kicker{display:none}
+.workspace-ready .guide-empty h3{font-size:17px!important}
+.workspace-ready .op-start-box{margin:14px 0;padding:10px}
+.workspace-ready .op-route-metrics{margin-top:12px}
+.workspace-ready .op-route-metrics span{font-size:10px}
+.workspace-ready .op-route-metrics strong{font-size:15px}
+.workspace-ready .guide-result-grid{grid-template-columns:1fr;margin:8px 0}
+.workspace-ready #guide-route-summary{display:none}
+.workspace-ready .guide-result-grid>p{margin:0;padding:8px;font-size:12px}
+.workspace-ready .guide-summary{padding:0;margin:0;border:0;background:transparent}
+.workspace-ready .guide-summary>.guide-kicker,.workspace-ready .guide-summary>h2{display:none}
+.workspace-ready .guide-summary-values{grid-template-columns:1fr}
+.workspace-ready .op-notes{border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.workspace-ready #guide-show-ignition,.workspace-ready #guide-show-spread,.workspace-ready #guide-show-route{display:none}
+.workspace-ready .op-command :focus-visible{outline:3px solid #509eca;outline-offset:2px}
+@media(max-width:1100px) and (min-width:801px){.workspace-ready .op-layout{grid-template-columns:minmax(0,1fr) 330px}}
+@media(max-width:800px){
+  .workspace-ready .op-layout{grid-template-columns:minmax(0,1fr);height:auto;overflow:visible}
+  .workspace-ready .op-map-card{border-right:0;border-bottom:1px solid var(--line);height:auto}
+  .workspace-ready .workspace-map-viewport{flex:none;height:260px;height:clamp(220px,33svh,300px)}
+  .workspace-ready .op-command{overflow:visible}
+  .workspace-command-body{overflow:visible;scrollbar-gutter:auto;padding:14px}
+  .workspace-command-head{padding:14px}
+  .workspace-command-footer{position:sticky;bottom:0;z-index:20;padding:10px 14px max(10px,env(safe-area-inset-bottom));box-shadow:0 -4px 14px #163a2512}
+  .workspace-ready #guide-show-ignition,.workspace-ready #guide-show-spread,.workspace-ready #guide-show-route{display:inline-block}
+  .workspace-ready .op-coordinate-grid input,.workspace-ready .guide-target-zone select{font-size:16px}
+  .workspace-ready .guided-progress{padding:8px}
+  .workspace-ready .guide-progress-top strong{font-size:11px}
+  .workspace-ready .guide-steps button{font-size:12px;min-height:44px;padding:5px 4px;gap:5px}
+  .workspace-ready .guide-detection-grid{grid-template-columns:1fr}
+}
+@media(max-width:400px){
+  .workspace-map-head{padding:8px;gap:6px}
+  .workspace-map-head>b{font-size:12px}
+  .workspace-map-head>.workspace-details>summary{font-size:11px}
+  .workspace-ready .guide-steps button{font-size:11px;gap:3px}
+  .workspace-ready .guide-utilities button{font-size:10px}
+  .workspace-ready .sim-toast{top:92px;padding:8px;width:240px;font-size:11px}
+}
