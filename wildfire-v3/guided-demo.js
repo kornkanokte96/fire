@@ -47,28 +47,39 @@
   }
   function paintNavigation() {
     const sim = simulation();
+    const workspace = window.WildfireWorkspace;
     document.body?.classList.toggle('guide-active', guide.active);
-    if ($('guided-progress')) $('guided-progress').hidden = !guide.active;
+    if ($('guided-progress')) $('guided-progress').hidden = !guide.active && !workspace;
     if ($('guide-summary')) $('guide-summary').hidden = !guide.active || !guide.summary;
     for (let step = 1; step <= 4; step++) {
       const card = $('guide-card-' + step), section = step === 1 ? $('guide-fire-target') : step === 2 ? $('fire-simulation') : step === 3 ? $('sim-results') : $('guide-access-target');
-      const active = guide.active && !guide.summary && guide.step === step;
+      const active = (guide.active || !!workspace) && !guide.summary && guide.step === step;
       if (card) { card.hidden = !active; card.classList.toggle('guide-active', active); }
       section?.classList.toggle('guided-highlight', active && (step !== 3 || !!sim.scenario));
     }
-    const missing = guide.active && !guide.summary && guide.step === 3 && !sim.scenario;
+    const missing = (guide.active || !!workspace) && !guide.summary && guide.step === 3 && !sim.scenario;
     if ($('guide-detection-empty')) {
       $('guide-detection-empty').hidden = !missing;
       $('guide-detection-empty').classList.toggle('guided-highlight', missing);
     }
     document.querySelectorAll('[data-guide-step]').forEach(button => {
-      const active = guide.active && !guide.summary && Number(button.dataset.guideStep) === guide.step;
+      const active = (guide.active || !!workspace) && !guide.summary && Number(button.dataset.guideStep) === guide.step;
       button.classList.toggle('active', active);
       button.setAttribute('aria-current', active ? 'step' : 'false');
     });
     text('guide-progress-label', guide.summary ? 'สรุปการสาธิต · ข้อมูลจากฉากปัจจุบัน' : 'ขั้น ' + guide.step + '/4 · ' + labels[guide.step - 1]);
     if ($('guide-back')) $('guide-back').disabled = !guide.summary && guide.step === 1;
     text('guide-next', guide.summary ? 'เริ่มคำแนะนำใหม่' : guide.step === 4 ? 'ดูสรุป' : 'ถัดไป');
+    if (workspace) {
+      const op = operational(), button = $('guide-next');
+      const routeBusy = op.routeStatus?.state === 'loading';
+      text('guide-next', guide.summary ? 'กลับไปเลือกจุดไฟ' : guide.step === 1 ? 'ใช้จุดนี้ → จำลอง' : guide.step === 2 ? (sim.busy ? 'กำลังคำนวณ…' : sim.scenario ? 'ดูการตรวจจับ →' : 'เริ่มจำลองไฟลาม') : guide.step === 3 ? 'วางแผนเข้าถึงพื้นที่ →' : routeBusy ? 'กำลังคำนวณเส้นทาง…' : op.currentRoute ? 'ดูสรุปผล →' : !op.routingAvailable ? 'ข้อมูลเส้นทางยังไม่พร้อม' : 'คำนวณเส้นทาง');
+      if (button) button.disabled = !guide.summary && ((guide.step === 1 && !coord(op.target)) || (guide.step === 2 && (sim.busy || (!sim.scenario && !op.ready))) || (guide.step === 4 && (routeBusy || (!op.currentRoute && !op.routingAvailable))));
+      text('guide-back', '← ย้อนกลับ');
+      $('guide-skip').hidden = !guide.active;
+      text('guide-restart', guide.active ? 'เริ่มคำแนะนำใหม่' : 'เริ่ม Demo');
+      workspace.render(guide, sim, op);
+    }
     if ($('guide-show-spread')) $('guide-show-spread').disabled = !sim.scenario;
     if ($('guide-show-route')) $('guide-show-route').disabled = !operational().currentRoute;
     updateStickyHeight();
@@ -79,13 +90,15 @@
     const hash = summary ? '#guide-summary' : '#guide-step-' + guide.step;
     if (writeHistory && window.location.hash !== hash) window.history.pushState(null, '', hash);
     refresh();
-    if (scroll) scrollTo(stepTarget());
+    if (window.WildfireWorkspace) window.WildfireWorkspace.focusStep();
+    else if (scroll) scrollTo(stepTarget());
   }
   function exit(writeHistory = true) {
     guide.active = false; guide.summary = false;
     if (writeHistory && parseHash(window.location.hash)) window.history.pushState(null, '', guide.returnHash);
     refresh();
-    scrollTo($('operational-3d-map'), false);
+    if (window.WildfireWorkspace) window.WildfireWorkspace.scrollToMap();
+    else scrollTo($('operational-3d-map'), false);
   }
   function followHash() {
     const parsed = parseHash(window.location.hash);
@@ -115,7 +128,7 @@
     if (sim.busy) { message = sim.status?.message || 'กำลังคำนวณฉาก · ยังไม่มีผลการตรวจจับ'; state = 'loading'; }
     else if (!sim.scenario) { message = sim.status?.state === 'error' ? sim.status.message : (sim.status?.message ? sim.status.message + ' · ' : '') + 'ยังไม่มีฉากไฟลาม · ไปขั้น 2 แล้วกดทดลองเพื่อดูการตรวจจับจริงจากผลฉาก'; state = sim.status?.state === 'error' ? 'error' : 'empty'; }
     else if (!all.length) { message = 'ฉากนี้ไม่มีสถานีพบสัญญาณควันจำลองภายใน 120 นาที · อาจเป็นช่องว่างการตรวจจับหรือลมพัดออกจากเครือข่าย · การไม่มีสัญญาณไม่ยืนยันว่าพื้นที่ไม่มีไฟ'; state = 'no-detection'; }
-    else { const seen = all.filter(event => event.minute <= sim.minute).length; message = 'T+' + sim.minute + ' นาที · พบแล้ว ' + seen + ' / ' + all.length + ' สถานีในฉาก · แสดงผลคาดพบ 3 รายการแรก (ข้อมูลจำลอง)'; state = 'ready'; }
+    else { const seen = all.filter(event => event.minute <= sim.minute).length; message = 'T+' + sim.minute + ' นาที · พบแล้ว ' + seen + ' / ' + all.length + ' สถานีในฉาก · แสดงผลคาดพบสูงสุด 3 รายการแรก (ข้อมูลจำลอง)'; state = 'ready'; }
     text('guide-detection-state', message);
     if ($('guide-detection-state')) $('guide-detection-state').dataset.state = state;
     const placeholder = $('guide-detection-empty');
@@ -139,7 +152,8 @@
     const container = $('guide-route-summary'), status = op.routeStatus || {}, route = op.currentRoute;
     if (!container) return;
     container.replaceChildren();
-    const message = status.message || (!op.ready ? 'แผนที่กำลังเตรียมข้อมูล' : !op.routingAvailable ? 'ยังไม่มี OSM graph ที่ใช้คำนวณเส้นทางได้' : route ? 'แสดงเส้นทางที่คำนวณแล้วจากข้อมูลปัจจุบัน' : 'ยังไม่ได้คำนวณเส้นทาง · เลือกจุดเริ่มและรูปแบบการเดินทางแล้วกดคำนวณ');
+    const unavailable = window.WildfireWorkspace && !route && !op.routingAvailable && status.state !== 'error';
+    const message = unavailable ? 'ข้อมูลถนน/ทางเดินสำหรับรูปแบบนี้ยังไม่พร้อม · ลองเลือกรูปแบบการเดินทางอื่น หรือรอข้อมูล OSM พร้อมก่อนคำนวณ' : status.message || (!op.ready ? 'แผนที่กำลังเตรียมข้อมูล' : !op.routingAvailable ? 'ยังไม่มี OSM graph ที่ใช้คำนวณเส้นทางได้' : route ? 'แสดงเส้นทางที่คำนวณแล้วจากข้อมูลปัจจุบัน' : 'ยังไม่ได้คำนวณเส้นทาง · เลือกจุดเริ่มและรูปแบบการเดินทางแล้วกดคำนวณ');
     text('guide-route-state', message);
     if ($('guide-route-state')) $('guide-route-state').dataset.state = status.state || (route ? 'ready' : 'empty');
     if (!route) return;
@@ -197,11 +211,18 @@
     text('guide-simulation-current', sim.busy ? sim.status?.message || 'กำลังคำนวณฉาก' : sim.scenario ? 'ฉากปัจจุบัน T+' + sim.minute + ' นาที · ' + (sim.playing ? 'กำลังเล่น' : 'พัก / เลื่อนเวลาได้') + ' · ค่าเซนเซอร์จำลอง' : sim.status?.message || 'ยังไม่มีฉาก · กดปุ่มทดลองเพื่อเริ่ม');
     renderDetections(sim); renderRoute(op); renderSummary(sim, op); paintNavigation();
   }
-  const next = () => guide.summary ? changeView(1) : guide.step < 4 ? changeView(guide.step + 1) : changeView(4, true);
-  bind('guide-start', () => changeView(1));
+  const next = () => {
+    if (window.WildfireWorkspace && !guide.summary) {
+      if (guide.step === 2 && !simulation().scenario) { if (!simulation().busy) window.WildfireSimulation?.run?.(); return; }
+      if (guide.step === 4 && !operational().currentRoute) { $('op-route')?.click(); return; }
+    }
+    if (guide.summary) changeView(1); else if (guide.step < 4) changeView(guide.step + 1); else changeView(4, true);
+  };
+  bind('guide-start', () => { changeView(1); window.WildfireWorkspace?.scrollToMap(); });
   bind('guide-explore', () => exit());
   bind('guide-back', () => { if (guide.summary) changeView(4); else if (guide.step > 1) changeView(guide.step - 1); });
   bind('guide-next', next); bind('guide-go-route', () => changeView(4));
+  bind('workspace-summary', () => changeView(4, true));
   bind('guide-skip', () => exit()); bind('guide-restart', () => changeView(1));
   bind('guide-summary-other', () => changeView(1)); bind('guide-summary-restart', () => changeView(1)); bind('guide-summary-exit', () => exit());
   for (const id of ['guide-restart', 'guide-summary-restart']) {
@@ -232,5 +253,5 @@
   const initial = parseHash(window.location.hash);
   if (initial) changeView(initial.step, initial.summary, false, false);
   else { guide.returnHash = window.location.hash || '#operational-3d'; refresh(); }
-  if (initial) (window.requestAnimationFrame || (callback => callback()))(() => scrollTo(stepTarget()));
+  if (initial) (window.requestAnimationFrame || (callback => callback()))(() => window.WildfireWorkspace ? window.WildfireWorkspace.scrollToMap() : scrollTo(stepTarget()));
 })();
