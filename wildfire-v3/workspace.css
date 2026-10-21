@@ -115,3 +115,5 @@
   .workspace-ready .guide-utilities button{font-size:10px}
   .workspace-ready .sim-toast{top:92px;padding:8px;width:240px;font-size:11px}
 }
+
+.workspace-road-status{font-size:12px;line-height:1.65;padding:10px;background:#edf4ee;border-radius:6px}

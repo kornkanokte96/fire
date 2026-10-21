@@ -71,6 +71,22 @@
   const fullTimeline = details('ดูรายการตรวจจับทั้งหมดและสมมติฐาน', results.querySelector('.sim-results-head'), $('sim-events'), results.querySelector('.sim-method'));
   results.append(fullTimeline);
   const route = $('guide-access-target');
+  const roadStatus = make('p', 'workspace-road-status'); roadStatus.id = 'workspace-road-status';
+  roadStatus.setAttribute('role', 'status');
+  const retryRoads = make('button', '', 'ลองโหลดถนนล่าสุดอีกครั้ง');
+  retryRoads.id = 'workspace-retry-roads'; retryRoads.type = 'button';
+  retryRoads.addEventListener('click', () => window.ForestWatchRoadData?.retry());
+  route.prepend(roadStatus, retryRoads);
+  const updateRoadStatus = payload => {
+    const info = payload?.provenance?.roads || {}, available = !!payload?.osmOK;
+    const saved = ['snapshot', 'cache'].includes(info.source);
+    const date = info.savedAt ? new Date(info.savedAt).toLocaleDateString('th-TH', {timeZone:'Asia/Bangkok'}) : '';
+    roadStatus.textContent = available ? (saved ? 'ใช้ถนน OSM ที่บันทึกไว้' + (date ? ' · ' + date : '') : 'ถนน OSM ล่าสุดพร้อมคำนวณ') + (info.status === 'loading' ? ' · กำลังตรวจข้อมูลล่าสุด' : info.status === 'unavailable' ? ' · บริการอัปเดตสดไม่ตอบกลับ ยังคำนวณได้' : '') : info.status === 'loading' ? 'กำลังโหลดถนนสำหรับคำนวณเส้นทาง…' : 'โหลดถนนไม่สำเร็จ · กดลองโหลดอีกครั้ง';
+    retryRoads.hidden = available && info.status !== 'unavailable';
+    retryRoads.disabled = info.status === 'loading';
+  };
+  window.addEventListener('forestwatch:v1-ready', event => updateRoadStatus(event.detail));
+  updateRoadStatus(window.ForestWatchPresentationState);
   const routeDetails = details('รายละเอียดเส้นทางและข้อจำกัด', route.querySelector('.op-route-detail'), route.querySelector('.op-safety-note'));
   route.append(routeDetails);
   const partialSummary = make('button', 'workspace-partial-summary', 'ดูสรุปข้อมูลที่มี →');

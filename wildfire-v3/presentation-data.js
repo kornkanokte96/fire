@@ -2,6 +2,8 @@
 (() => {
   const ENDPOINTS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
   const REQUEST_LIMIT_MS=12000;
+  const ROAD_SNAPSHOT='data/osm-roads.json';
+  const requests={roads:0,support:0};
   const HIGHWAY_WEIGHT={motorway:1,trunk:1,primary:1,secondary:.98,tertiary:.95,unclassified:.9,residential:.9,service:.86,track:.72,path:.50,footway:.48,steps:.35,cycleway:.58};
   const state={data:null,osm:{segments:[],masts:[],barriers:[],support:[]},roads:{status:'pending',source:'none'},support:{status:'pending',source:'none'},requestKey:null};
   const coordinate=p=>p&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180;
@@ -31,7 +33,7 @@
     window.dispatchEvent(new CustomEvent('forestwatch:v1-ready',{detail:payload}));
     const label=document.getElementById('v1-data-status');
     if(label){
-      const describe=(name,info)=>name+' '+(info.status==='ready'?'OSM ล่าสุด':info.source==='cache'?'OSM ที่บันทึกไว้'+(info.status==='loading'?' · กำลังอัปเดต':' · อัปเดตไม่สำเร็จ'):info.status==='loading'?'กำลังโหลด':'ไม่พร้อม');
+      const describe=(name,info)=>name+' '+(info.source==='snapshot'?'OSM ชุดเดโมที่บันทึกไว้':info.status==='ready'?'OSM ล่าสุด':info.source==='cache'?'OSM ที่บันทึกไว้'+(info.status==='loading'?' · กำลังอัปเดต':' · อัปเดตไม่สำเร็จ'):info.status==='loading'?'กำลังโหลด':'ไม่พร้อม');
       label.textContent=describe('ถนน/ทาง',state.roads)+' · '+describe('จุดสนับสนุน/สิ่งกีดขวาง',state.support)+' · Network Plan '+network.nodes.length+' จุดชุดเดียวกับแผนที่ 2D';
       label.dataset.state=payload.osmOK?'ready':state.roads.status==='loading'?'loading':'error';
     }
@@ -46,7 +48,9 @@
     try{
       const value=JSON.parse(localStorage.getItem(key)||'null');
       if(value?.version!==1||!Number.isFinite(value.savedAt))return null;
-      if(kind==='roads'&&!Array.isArray(value.data?.segments))return null;
+      if(kind==='roads'&&(!Array.isArray(value.data?.segments)||!value.data.segments.length||!value.data.segments.every(segment=>
+        Array.isArray(segment.a)&&Array.isArray(segment.b)&&segment.a.length===2&&segment.b.length===2&&
+        coordinate({lat:segment.a[0],lon:segment.a[1]})&&coordinate({lat:segment.b[0],lon:segment.b[1]}))))return null;
       if(kind==='support'&&(!Array.isArray(value.data?.support)||!Array.isArray(value.data?.barriers)||!Array.isArray(value.data?.masts)))return null;
       return value;
     }catch(_){return null;}
@@ -126,26 +130,56 @@
     return {masts,barriers,support};
   }
 
+  function assignData(kind,data){
+    // A refresh with identical geometry must not invalidate a computed journey.
+    if(kind==='roads'&&JSON.stringify(state.osm.segments)===JSON.stringify(data.segments))return;
+    Object.assign(state.osm,data);
+  }
+  async function loadRoadSnapshot(bounds,isCurrent){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),REQUEST_LIMIT_MS);
+    try{
+      const response=await fetch(ROAD_SNAPSHOT,{signal:controller.signal});
+      if(!response.ok)throw new Error('Road snapshot HTTP '+response.status);
+      const snapshot=await response.json(),box=snapshot.bounds;
+      const coverage=boundsBox(bounds).split(',').map(Number),epsilon=1e-7;
+      if(snapshot.version!==1||!Number.isFinite(Date.parse(snapshot.fetchedAt))||!box||
+        ![box.minLat,box.minLon,box.maxLat,box.maxLon].every(Number.isFinite)||
+        box.minLat>coverage[0]+epsilon||box.minLon>coverage[1]+epsilon||
+        box.maxLat<coverage[2]-epsilon||box.maxLon<coverage[3]-epsilon||
+        !Array.isArray(snapshot.elements))throw new Error('Road snapshot does not cover this planning area');
+      const parsed=roadData(snapshot.elements);
+      if(!parsed.segments.length)throw new Error('Empty road snapshot');
+      if(!isCurrent()||state.roads.source!=='none')return;
+      assignData('roads',parsed);
+      state.roads={...state.roads,source:'snapshot',savedAt:snapshot.fetchedAt,endpoint:snapshot.source,license:snapshot.license};
+      publish();
+    }catch(_){/* Live/cache loading continues; unavailable data never becomes a route. */}
+    finally{clearTimeout(timer);controller.abort();}
+  }
   async function loadPart(kind,bounds,requestKey){
+    const revision=++requests[kind],isCurrent=()=>state.requestKey===requestKey&&requests[kind]===revision;
     const key=cacheKey(kind,bounds),cached=readCache(key,kind);
     if(cached){
-      Object.assign(state.osm,cached.data);
+      assignData(kind,cached.data);
       state[kind]={status:'loading',source:'cache',savedAt:new Date(cached.savedAt).toISOString(),endpoint:cached.endpoint||null};
-    }else state[kind]={status:'loading',source:'none'};
+    }else state[kind]={...state[kind],status:'loading'};
     publish();
+    // Same-origin OSM geometry makes cold starts usable without waiting on Overpass.
+    if(kind==='roads'&&state.roads.source==='none')void loadRoadSnapshot(bounds,isCurrent);
     let failure;
     for(const endpoint of ENDPOINTS){
       try{
         const response=await fetchElements(endpoint,queryFor(kind,bounds));
-        if(state.requestKey!==requestKey)return;
+        if(!isCurrent())return;
         const parsed=kind==='roads'?roadData(response.elements):supportData(response.elements);
         if(kind==='roads'&&!parsed.segments.length)throw new Error('No usable mapped road geometry');
-        Object.assign(state.osm,parsed);
+        assignData(kind,parsed);
         state[kind]={status:'ready',source:'live',endpoint,fetchedAt:new Date().toISOString(),osmTimestamp:response.timestamp};
         writeCache(key,parsed,endpoint);publish();return;
       }catch(error){failure=error;}
     }
-    if(state.requestKey!==requestKey)return;
+    if(!isCurrent())return;
     state[kind]={...state[kind],status:'unavailable',error:failure?.message||'OSM unavailable'};publish();
   }
   function receiveData(data){
@@ -162,5 +196,9 @@
     }else publish();
   }
   window.addEventListener('forestwatch:v4-ready',event=>receiveData(event.detail));
+  window.ForestWatchRoadData=Object.freeze({retry(){
+    if(!state.data||state.roads.status==='loading')return false;
+    void loadPart('roads',state.data.bounds,state.requestKey);return true;
+  }});
   if(window.ForestWatchNetworkV4)receiveData(window.ForestWatchNetworkV4);
 })();
