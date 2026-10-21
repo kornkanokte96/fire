@@ -222,6 +222,10 @@ assert.equal(workspace.calls.route, 1, 'The footer uses the original route contr
 assert.equal(workspace.getState().step, 4, 'Do not show success/summary before a route exists');
 workspace.op.routingAvailable = false; workspace.dispatch('wildfire:route-updated');
 assert.equal(workspace.elements.get('guide-next').disabled, true);
+workspace.op.routingAvailable = true; workspace.dispatch('wildfire:data-updated');
+assert.equal(workspace.elements.get('guide-next').disabled, false, 'Roads arriving after map initialization must enable routing without changing the target');
+workspace.op.routingAvailable = false; workspace.dispatch('wildfire:data-updated');
+assert.equal(workspace.elements.get('guide-next').disabled, true, 'Unavailable/restricted replacement data must disable routing again');
 workspace.click('workspace-summary'); assert.equal(workspace.getState().summary, true);
 assert.match(workspace.text('guide-summary-values'), /ยังไม่มีเส้นทางที่คำนวณแล้ว/);
 assert.equal(workspace.calls.route, 1, 'The partial summary must not invent or calculate a route');

@@ -524,7 +524,7 @@
     setText('op-road-count',(state.osm.segments||[]).length.toLocaleString('th-TH'));
     setText('op-support-count',(state.osm.support||[]).length.toLocaleString('th-TH'));
     setText('op-barrier-count',(state.osm.barriers||[]).length.toLocaleString('th-TH'));
-    setText('op-route-data',state.osmOK?(state.provenance?.roads?.source==='cache'?'OSM ที่บันทึกไว้ · '+new Date(state.provenance.roads.savedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'}):'OSM routing graph ready'):'กำลังโหลดหรือไม่พร้อม · ยังไม่คำนวณเส้นทาง');
+    setText('op-route-data',state.osmOK?(['cache','snapshot'].includes(state.provenance?.roads?.source)?'OSM ที่บันทึกไว้ · '+new Date(state.provenance.roads.savedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'}):'OSM routing graph ready'):'กำลังโหลดหรือไม่พร้อม · ยังไม่คำนวณเส้นทาง');
     syncLayerToggles();
     window.dispatchEvent(new CustomEvent('wildfire:data-updated',{detail:{state:app.state}}));
   }

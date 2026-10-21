@@ -246,6 +246,7 @@
   window.addEventListener('wildfire:route-updated', () => { guide.targetMessage = ''; refresh(); });
   window.addEventListener('wildfire:target-changed', () => { guide.targetMessage = ''; refresh(); });
   window.addEventListener('wildfire:map-ready', refresh);
+  window.addEventListener('wildfire:data-updated', refresh);
   window.addEventListener('hashchange', followHash); window.addEventListener('popstate', followHash);
   window.addEventListener('resize', updateStickyHeight);
   if (window.ResizeObserver && $('guided-progress')) new window.ResizeObserver(updateStickyHeight).observe($('guided-progress'));

@@ -72,13 +72,13 @@ const shared = [...tree.keys()].filter(file => file.startsWith('vendor/') || (!f
 shared.forEach(file => assertBaseline(file));
 console.log('PASS: the V2 working tree and shared root/runtime/vendor assets match the published baseline.');
 
-for (const file of ['fire-model.js', 'fire-worker.js', 'network-plan.js', 'point-filters.js', 'presentation-data.js']) {
+for (const file of ['fire-model.js', 'fire-worker.js', 'network-plan.js', 'point-filters.js']) {
   assertBaseline('wildfire-v3/' + file, 'wildfire-v2/' + file);
 }
 // The preserved root blob has mixed CRLF/LF. Git normalizes the new V3 copy when committed;
 // compare its text to the root file already validated above, allowing only CRLF → LF.
 assert.equal(read('wildfire-v3/style.css').replace(/\r\n/g, '\n'), read('style.css').replace(/\r\n/g, '\n'), 'V3 base style must match the preserved root style apart from checkout line endings');
-console.log('PASS: V3 keeps the original model, worker protocol, Network Plan, filters, data, and base style.');
+console.log('PASS: V3 keeps the original model, worker protocol, Network Plan, filters, and base style; its road loader has an independent fallback.');
 
 const dependencies = new Set();
 const resolveAsset = (from, reference) => {

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="WILDFIRE V.03 · จำลองไฟลาม 120 นาทีบนภูมิประเทศ 3D การตรวจจับเซนเซอร์ และเส้นทางรถ/เดินเท้า · ข้อมูลจำลอง"><title>WILDFIRE DIGITAL TWIN · V.03 | Guided Demo</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b493b'/%3E%3Cpath d='M16 5L5 23h22Z' fill='%238edf8f'/%3E%3Cpath d='M16 18v10' stroke='white' stroke-width='3'/%3E%3C/svg%3E"><link rel="stylesheet" href="style.css?v=wildfire-v03"><link rel="stylesheet" href="../vendor/leaflet/leaflet.css" crossorigin=""><link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css?v=5.6.2"><link rel="stylesheet" href="presentation.css?v=shared-planned-sites"><link rel="stylesheet" href="fire-simulation.css?v=wildfire-v02"><link rel="stylesheet" href="journey.css?v=wildfire-v02"><link rel="stylesheet" href="guided-demo.css?v=wildfire-v03"><link rel="stylesheet" href="workspace.css?v=workspace-v03-20261020"></head>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="WILDFIRE V.03 · จำลองไฟลาม 120 นาทีบนภูมิประเทศ 3D การตรวจจับเซนเซอร์ และเส้นทางรถ/เดินเท้า · ข้อมูลจำลอง"><title>WILDFIRE DIGITAL TWIN · V.03 | Guided Demo</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b493b'/%3E%3Cpath d='M16 5L5 23h22Z' fill='%238edf8f'/%3E%3Cpath d='M16 18v10' stroke='white' stroke-width='3'/%3E%3C/svg%3E"><link rel="stylesheet" href="style.css?v=wildfire-v03"><link rel="stylesheet" href="../vendor/leaflet/leaflet.css" crossorigin=""><link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css?v=5.6.2"><link rel="stylesheet" href="presentation.css?v=shared-planned-sites"><link rel="stylesheet" href="fire-simulation.css?v=wildfire-v02"><link rel="stylesheet" href="journey.css?v=wildfire-v02"><link rel="stylesheet" href="guided-demo.css?v=wildfire-v03"><link rel="stylesheet" href="workspace.css?v=roads-fallback-v03"></head>
 <body><header class="topbar"><div class="brand"><span class="brandmark" aria-hidden="true">▲</span><div><b>WILDFIRE V.03</b><span>ศูนย์เฝ้าระวังไฟป่า · จำลองไฟลามและการตรวจจับ</span></div></div><div class="headright"><span class="demotag">DEMO · ข้อมูลจำลอง</span></div></header>
 <main>
 <section class="demo-hero" aria-labelledby="hero-heading">
@@ -321,14 +321,14 @@
 
 <details class="method"><summary>ข้อมูลที่ใช้และขอบเขตของเดโม</summary><p>WILDFIRE V.03 ใช้เครือข่ายที่วางแผนล่าสุด N01–N21 และ Existing Sensors 3 จุดร่วมกันบนแผนที่ 2D และ 3D ภูมิประเทศสำหรับวางแผนใช้ Copernicus DEM GLO-90 ผ่าน Open-Meteo ส่วนภาพ 3D ใช้ Terrarium DEM และ Esri World Imagery ถนนและทางเดินมาจาก OpenStreetMap</p><p>ฉากไฟลามใหม่สุ่มลมตั้งต้น 0.8–5.0 m/s ให้เปลี่ยนต่อเนื่องตามเวลาและสถานี ค่าเซนเซอร์และเวลาตรวจจับทั้งหมดเป็นข้อมูลจำลอง สีความน่าจะเป็นคือสัดส่วนจาก 24 ฉากที่ลามถึงพื้นที่ภายในเวลาที่เลือก หลังสมมติว่าจุดเริ่มต้นติดไฟแล้ว</p><p>ชุด Reference / Super Station จำลอง PM2.5 โดยไม่มี CO ชุด Fusion และ AQ จำลอง PM2.5 / CO ตามอุปกรณ์ที่เสนอ Existing Sensors สมมติการรองรับ PM สำหรับการสาธิต เพราะยังไม่มีรายละเอียดอุปกรณ์ครบ เกณฑ์ ΔPM2.5 &gt;25 µg/m³ และ ΔCO &gt;0.2 ppm เป็นเกณฑ์ทดลอง ไม่ใช่เกณฑ์ที่สอบเทียบกับอุปกรณ์จริง</p><p>Historical Replay ในแผนที่ 2D ยังใช้ลมอ้างอิงเดิม 261° → 81° เพื่อเทียบเครือข่าย ส่วนฉาก 3D ใช้ลมสุ่มใหม่ ทุกพิกัดและเส้นทางเป็นข้อมูลช่วยวางแผน ต้องตรวจสอบหน้างานก่อนใช้งานจริง</p><p>© OpenStreetMap contributors · Esri World Imagery · Copernicus DEM · Open-Meteo · AWS Terrain Tiles</p><a href="https://registry.opendata.aws/copernicus-dem/">Copernicus DEM</a> · <a href="https://www.openstreetmap.org/copyright">OSM</a> · <a href="https://open-meteo.com/en/docs/elevation-api">Open-Meteo Elevation</a></details>
 <footer><span>WILDFIRE V.03 · หน้าจอสาธิตสำหรับเจ้าหน้าที่</span></footer></main>
-<script src="workspace.js?v=workspace-v03-20261020"></script>
+<script src="workspace.js?v=roads-fallback-v03"></script>
 <script src="../vendor/leaflet/leaflet.js" crossorigin=""></script>
 <script src="point-filters.js?v=shared-planned-sites"></script>
 <script src="network-plan.js?v=shared-planned-sites"></script>
-<script src="presentation-data.js?v=shared-planned-sites"></script>
+<script src="presentation-data.js?v=roads-fallback-v03"></script>
 <script src="../vendor/maplibre/maplibre-gl.js?v=5.6.2"></script>
 <script src="../vendor/contour/index.min.js?v=0.1.0"></script>
-<script src="terrain3d.js?v=wildfire-v03"></script>
+<script src="terrain3d.js?v=roads-fallback-v03"></script>
 <script src="fire-model.js?v=wildfire-v02"></script>
 <script src="fire-simulation.js?v=wildfire-v03"></script>
-<script src="guided-demo.js?v=workspace-v03-20261020"></script></body></html>
+<script src="guided-demo.js?v=roads-fallback-v03"></script></body></html>
