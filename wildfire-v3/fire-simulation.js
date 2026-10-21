@@ -92,16 +92,31 @@
     if(sim.map){const center=[p.lon,p.lat],elevation=sim.map.queryTerrainElevation?.(center);sim.map.setCenterClampedToGround?.(true);sim.map.easeTo({center,zoom:13,pitch:45,duration:650,...(Number.isFinite(elevation)?{elevation}:{})});}
     else sim.flatMap?.setView([p.lat,p.lon],14);
   }
-  function focusFire(){
+  function focusFire({overview=false}={}){
     if(!sim.scenario)return;
-    const o=sim.scenario.origin,forecast=window.WildfireSimulationModel.getFrame(sim.scenario,120);
-    const points=[o,{lat:o.lat-.012,lon:o.lon-.012},{lat:o.lat+.012,lon:o.lon+.012},...(forecast.probabilityFC?.features||[]).map(f=>({lon:f.geometry.coordinates[0][0][0],lat:f.geometry.coordinates[0][0][1]}))];
+    // Initial playback keeps the forecast overview. Explicit focus follows the fire already
+    // reached at the selected minute, without seeking or recalculating the scenario.
+    const o=sim.scenario.origin,frame=overview?window.WildfireSimulationModel.getFrame(sim.scenario,120):sim.frame;
+    const points=[o];
+    const collect=coordinates=>{
+      if(!Array.isArray(coordinates))return;
+      if(coordinates.length>=2&&Number.isFinite(coordinates[0])&&Number.isFinite(coordinates[1])){
+        const point={lon:coordinates[0],lat:coordinates[1]};if(coordinate(point))points.push(point);
+      }else coordinates.forEach(collect);
+    };
+    for(const feature of (overview?frame?.probabilityFC:frame?.fireFC)?.features||[])collect(feature.geometry?.coordinates);
+    const margin=overview ? .012 : .0003;
+    points.push({lat:o.lat-margin,lon:o.lon-margin},{lat:o.lat+margin,lon:o.lon+margin});
+    const container=$('operational-3d-map'),width=container.clientWidth||800,height=container.clientHeight||500;
+    const padding=overview?85:{top:Math.min(90,height*.22),right:Math.min(48,width*.14),bottom:Math.min(85,height*.24),left:Math.min(48,width*.14)};
+    const maxZoom=overview?13:16,pitch=overview?45:40;
     if(sim.map){
       const b=new maplibregl.LngLatBounds();points.forEach(p=>b.extend([p.lon,p.lat]));
-      const camera=sim.map.cameraForBounds?.(b,{padding:85,maxZoom:13,bearing:-25});
-      if(camera){const elevation=sim.map.queryTerrainElevation?.(camera.center);sim.map.stop?.();sim.map.setCenterClampedToGround?.(true);sim.map.jumpTo({...camera,zoom:Math.min(13,camera.zoom-.5),pitch:45,padding:{top:0,right:0,bottom:0,left:0},...(Number.isFinite(elevation)?{elevation}:{})});}
-      else sim.map.fitBounds(b,{padding:85,maxZoom:13,pitch:45,bearing:-25,duration:650});
-    }else if(sim.flatMap&&window.L)sim.flatMap.fitBounds(points.map(p=>[p.lat,p.lon]),{padding:[40,40],maxZoom:14});
+      const camera=sim.map.cameraForBounds?.(b,{padding,maxZoom,bearing:-25});
+      if(camera){const elevation=sim.map.queryTerrainElevation?.(camera.center);sim.map.stop?.();sim.map.setCenterClampedToGround?.(true);sim.map.jumpTo({...camera,zoom:Math.min(maxZoom,camera.zoom-(overview ? .5 : .25)),pitch,padding:{top:0,right:0,bottom:0,left:0},...(Number.isFinite(elevation)?{elevation}:{})});}
+      else sim.map.fitBounds(b,{padding,maxZoom,pitch,bearing:-25,duration:650});
+    }else if(sim.flatMap&&window.L)sim.flatMap.fitBounds(points.map(p=>[p.lat,p.lon]),overview?{padding:[40,40],maxZoom:14}:{paddingTopLeft:[padding.left,padding.top],paddingBottomRight:[padding.right,padding.bottom],maxZoom});
+    if(!overview&&window.innerWidth<=800)window.WildfireWorkspace?.scrollToMap?.();
   }
   function signalsText(event){
     const s=event.signals||{};
@@ -217,7 +232,7 @@
       const scenario=await runWorker(input,job);
       if(job!==sim.job)return;
       if(planKey(context())!==snapshot){invalidate('เครือข่ายเซนเซอร์อัปเดตแล้ว · กดทดลองด้วยข้อมูลล่าสุด');return;}
-      sim.scenario=scenario;sim.busy=false;sim.markerKey=null;sim.accumulator=0;addOrigin();renderTimeline();render(0);$('sim-map-legend').hidden=false;focusFire();play();
+      sim.scenario=scenario;sim.busy=false;sim.markerKey=null;sim.accumulator=0;addOrigin();renderTimeline();render(0);$('sim-map-legend').hidden=false;focusFire({overview:true});play();
     }catch(error){if(job===sim.job){sim.busy=false;controls();status('ทดลองไม่สำเร็จ: '+error.message,'error');}}
   }
   $('sim-run').addEventListener('click',()=>experiment());
