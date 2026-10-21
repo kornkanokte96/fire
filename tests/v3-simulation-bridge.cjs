@@ -12,6 +12,7 @@ let helpers = read('tests/simulation-controller.cjs');
 const mainStart = helpers.indexOf('async function main() {');
 assert.ok(mainStart > 0, 'Lifecycle helper fixture is available');
 helpers = helpers.slice(0, mainStart).replaceAll('wildfire-v2/', 'wildfire-v3/');
+helpers = helpers.replace('LngLatBounds: class { extend() { return this; } }', 'LngLatBounds: class { constructor() { this.points = []; } extend(point) { this.points.push(point); return this; } }');
 const workerAnchor = "  if (workerMode !== 'absent') window.Worker = Worker;";
 assert.ok(helpers.includes(workerAnchor));
 helpers = helpers.replace(workerAnchor, `
@@ -109,6 +110,39 @@ async function main() {
   assert.equal(fallbackApi.getSnapshot().busy, false); assert.ok(fallbackApi.getSnapshot().scenario);
   assert.equal(fallbackApi.getSnapshot().playing, true); assert.equal(fallback.createdInputs.length, 1);
   fallback.hidden(true); assert.equal(latest(fallback).playing, false);
+  // Fire focus fits the selected frame, including every polygon corner, instead of
+  // the full 120-minute probability envelope. Camera actions must not seek/reset.
+  for (const flat of [false, true]) {
+    const focus = fixture({flat}), fit = [], moves = [];
+    const originalFrame = focus.window.WildfireSimulationModel.getFrame;
+    focus.window.WildfireSimulationModel.getFrame = (scenario, minute) => {
+      const frame = originalFrame(scenario, minute), p = scenario.origin, size = .0001 + minute * .00002;
+      frame.fireFC = {type:'FeatureCollection',features:[{geometry:{type:'Polygon',coordinates:[[[p.lon,p.lat],[p.lon+size,p.lat],[p.lon+size,p.lat+size],[p.lon,p.lat]]]}}]};
+      return frame;
+    };
+    focus.map.cameraForBounds = (bounds, options) => {fit.push({points:plain(bounds.points),options});return {center:[101.07,19.42],zoom:options.maxZoom};};
+    focus.map.jumpTo = options => moves.push(options);
+    focus.flatMap.fitBounds = (points, options) => fit.push({points:plain(points.map(p=>[p[1],p[0]])),options});
+    const job = focus.window.WildfireSimulation.run();focus.workers[0].result();await job;await settle();
+    focus.window.WildfireSimulation.pause();
+    const overview = fit.at(-1), extent = view => Math.max(...view.points.map(p=>p[0]))-Math.min(...view.points.map(p=>p[0]));
+    assert.ok(extent(overview) >= .024, 'Starting a scene retains the forecast overview');
+    const extents = [];
+    for (const minute of [0, 5, 60, 120]) {
+      focus.slider(minute);
+      const before = focus.window.WildfireSimulation.getSnapshot(), reads = focus.frameMinutes.length;
+      focus.click('sim-focus-fire');
+      const after = focus.window.WildfireSimulation.getSnapshot(), view = fit.at(-1);
+      assert.equal(after.minute, minute);assert.equal(after.scenario,before.scenario);assert.equal(after.frame,before.frame);assert.equal(after.playing,false);
+      assert.equal(focus.frameMinutes.length,reads,'Focusing must reuse the rendered frame');
+      assert.equal(view.options.maxZoom,16,'Allow a close view of a small fire in 3D and Leaflet fallback');
+      for (const point of before.frame.fireFC.features[0].geometry.coordinates[0])assert.ok(view.points.some(p=>p[0]===point[0]&&p[1]===point[1]),'Fit every polygon vertex');
+      extents.push(extent(view));
+    }
+    assert.ok(extents[0]<extent(overview)/10);assert.ok(extents[3]>extents[1],'Zoom bounds follow growth at the selected minute');
+    if(!flat)assert.ok(moves.at(-1).zoom>13,'Explicit focus can zoom beyond the old level-13 cap');
+  }
+  console.log('PASS: fire-focus camera follows selected-minute geometry in 3D and 2D fallback, preserves the initial overview, and never changes scenario/time/playback.');
   console.log('PASS: V3 real-engine snapshot/events; side-effect-free guide reads; worker/result/error/stale lifecycle; render/pause/seek/invalidation; PM-only capability snapshots; fallback/hidden-tab state; unchanged V2 model');
 }
 
